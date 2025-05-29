@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Collaborative To-Do</title>
+  <style>
+    body { font-family: Arial; margin: 30px; }
+    ul { list-style: none; padding: 0; }
+    li { margin: 5px 0; }
+    button { margin-left: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Real-Time Collaborative To-Do List</h1>
+  <input id="todoInput" placeholder="Enter a new task" />
+  <button onclick="addTodo()">Add</button>
+  <ul id="todoList"></ul>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const input = document.getElementById('todoInput');
+    const list = document.getElementById('todoList');
+
+    socket.on('init', (todos) => {
+      updateList(todos);
+    });
+
+    socket.on('todos updated', (todos) => {
+      updateList(todos);
+    });
+
+    function addTodo() {
+      const value = input.value.trim();
+      if (value) {
+        socket.emit('add todo', value);
+        input.value = '';
+      }
+    }
+
+    function deleteTodo(index) {
+      socket.emit('delete todo', index);
+    }
+
+    function updateList(todos) {
+      list.innerHTML = '';
+      todos.forEach((todo, i) => {
+        const li = document.createElement('li');
+        li.textContent = todo;
+        const btn = document.createElement('button');
+        btn.textContent = 'Delete';
+        btn.onclick = () => deleteTodo(i);
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
